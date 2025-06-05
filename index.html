@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guard的DMA小店(VIP后台)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #2c3e50;
+            position: relative;
+            display: inline-block;
+        }
+        
+        header h1::after {
+            content: "";
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, #3498db, #2c3e50);
+            border-radius: 2px;
+        }
+        
+        header p {
+            font-size: 1.1rem;
+            color: #7f8c8d;
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .main-content {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .products-section {
+            flex: 3;
+            min-width: 300px;
+        }
+        
+        .cart-section {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title i {
+            margin-right: 10px;
+            color: #3498db;
+        }
+        
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+        
+        .product-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+        
+        .product-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
+            color: white;
+            text-align: center;
+        }
+        
+        .product-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .product-title {
+            font-size: 1.4rem;
+            margin-bottom: 5px;
+        }
+        
+        .product-price {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .product-price span {
+            font-size: 1rem;
+            font-weight: normal;
+        }
+        
+        .product-body {
+            padding: 25px 20px;
+        }
+        
+        .product-features {
+            list-style: none;
+            margin-bottom: 25px;
+        }
+        
+        .product-features li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+        }
+        
+        .product-features li:last-child {
+            border-bottom: none;
+        }
+        
+        .product-features li i {
+            color: #2ecc71;
+            margin-right: 10px;
+        }
+        
+        .renew-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .renew-option {
+            flex: 1;
+            min-width: 70px;
+            text-align: center;
+            padding: 10px;
+            border: 2px solid #eee;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .renew-option:hover {
+            border-color: #3498db;
+        }
+        
+        .renew-option.selected {
+            background: #e1f0fa;
+            border-color: #3498db;
+            color: #3498db;
+            font-weight: bold;
+        }
+        
+        .renew-option .period {
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        
+        .renew-option .price {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+        
+        .renew-btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .renew-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);
+        }
+        
+        .renew-btn:active {
+            transform: translateY(0);
+        }
+        
+        .cart-items {
+            margin-bottom: 25px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+            position: relative;
+        }
+        
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+        
+        .remove-item {
+            position: absolute;
+            top: 8px;
+            right: 0;
+            color: #e74c3c;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+        
+        .remove-item:hover {
+            opacity: 1;
+        }
+        
+        .cart-summary {
+            padding: 15px 0;
+            border-top: 2px solid #eee;
+            border-bottom: 2px solid #eee;
+            margin: 20px 0;
+        }
+        
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+        }
+        
+        .total {
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #2c3e50;
+        }
+        
+        .checkout-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        
+        .checkout-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+        }
+        
+        .checkout-btn:disabled {
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .empty-cart {
+            text-align: center;
+            color: #7f8c8d;
+            padding: 30px 0;
+        }
+        
+        .empty-cart i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #bdc3c7;
+        }
+        
+        .payment-section {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-top: 30px;
+            display: none;
+        }
+        
+        .payment-methods {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .payment-method {
+            flex: 1;
+            text-align: center;
+            padding: 20px;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .payment-method:hover {
+            border-color: #3498db;
+        }
+        
+        .payment-method.selected {
+            background: #e1f0fa;
+            border-color: #3498db;
+        }
+        
+        .payment-method i {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: #3498db;
+        }
+        
+        .success-message {
+            text-align: center;
+            padding: 50px 20px;
+            display: none;
+        }
+        
+        .success-message i {
+            font-size: 5rem;
+            color: #2ecc71;
+            margin-bottom: 20px;
+        }
+        
+        .success-message h2 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        
+        .success-message p {
+            font-size: 1.1rem;
+            color: #7f8c8d;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: #2ecc71;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transform: translateX(200%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .cart-section {
+                position: relative;
+                top: 0;
+            }
+            
+            .renew-options {
+                flex-direction: column;
+            }
+            
+            .payment-methods {
+                flex-direction: column;
+            }
+            
+            header h1 {
+                font-size: 2rem;
+            }
+            
+            .product-title {
+                font-size: 1.2rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .product-card {
+                margin-bottom: 20px;
+            }
+            
+            .renew-option {
+                min-width: 60px;
+                padding: 8px;
+            }
+            
+            .renew-option .period {
+                font-size: 0.9rem;
+            }
+            
+            .section-title {
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-sync-alt"></i> Guard的DMA小店（后台）</h1>
+            <p>顶尖的HVH CS2官匹Cheat服务，独家售后</p>
+            <p2>保障客户权益只为最好的服务</p2>
+        </header>
+        
+        <div class="main-content">
+            <div class="products-section">
+                <h2 class="section-title"><i class="fas fa-box-open"></i> 我的订阅商品</h2>
+                
+                <div class="products-grid">
+                 <!-- 产品卡片  -->
+                    <div class="product-card">
+                        <div class="product-header" style="background: linear-gradient(135deg, #00c3ff 0%, #8c85f7 100%);">
+                            <div class="product-icon">
+                                <i class="fas fa-film"></i>
+                            </div>
+                            <h2 class="product-title">NeverLose</h2>  <!-- 商品名称 -->
+                            <div class="product-price">230<span>/月</span></div>
+                            <p>CS2版本续费</p>
+                            <p>CS2官匹 HVH T0级别</p>
+                        </div>
+                        <div class="product-body"><!-- 商品介绍词条 -->
+                            <ul class="product-features">
+                               <li><i class="fas fa-check-circle"></i> 操作方式：鼠标</li>
+                               <li><i class="fas fa-check-circle"></i> 语言支持：英文</li>
+                               <li><i class="fas fa-check-circle"></i> 系统支持：Win10/Win11</li>
+                               <li><i class="fas fa-check-circle"></i> 发货方式：下单后自动激活 </li>
+                            </ul>
+                            <!-- 价格 -->
+                            <div class="renew-options">
+                                <div class="renew-option" onclick="selectOption(this, 'NLCS2', 230, 1)">
+                                    <div class="period">1个月</div>
+                                    <div class="price">¥230</div>
+                                </div>
+                                <div class="renew-option" onclick="selectOption(this, 'NLCS2', 690, 3)">
+                                    <div class="period">3个月</div>
+                                    <div class="price">¥690</div>
+                                </div>
+                                <div class="renew-option" onclick="selectOption(this, 'NLCS2', 1380, 6)">
+                                    <div class="period">6个月</div>
+                                    <div class="price">¥1380</div>
+                                </div>
+                                <div class="renew-option selected" onclick="selectOption(this, 'NLCS2', 2760, 12)">
+                                    <div class="period">12个月</div>
+                                    <div class="price">¥2760</div>
+                                </div>
+                            </div>
+                            
+                            <button class="renew-btn" onclick="addToCart('NeverLose(CS2版本)', 'NLCS2', 168, 12)">
+                                <i class="fas fa-cart-plus"></i> 加入续费清单
+                            </button>
+                        </div>
+                    </div>
+<!-- 产品卡片  -->
+                   <div class="product-card">
+                        <div class="product-header" style="background: linear-gradient(135deg, #7340ff 0%, #fa0000 100%);">
+                            <div class="product-icon">
+                                <i class="fas fa-film"></i>
+                            </div>
+                            <h2 class="product-title">NeverLose</h2>  <!-- 商品名称 -->
+                            <div class="product-price">110<span>/月</span></div>
+                            <p>CS1版本续费</p>
+                            <p>CS1老牌辅助 HVH T0级别</p>
+                        </div>
+                        <div class="product-body"><!-- 商品介绍词条 -->
+                            <ul class="product-features">
+                               <li><i class="fas fa-check-circle"></i> 操作方式：鼠标</li>
+                               <li><i class="fas fa-check-circle"></i> 语言支持：英文</li>
+                               <li><i class="fas fa-check-circle"></i> 系统支持：Win10/Win11</li>
+                               <li><i class="fas fa-check-circle"></i> 发货方式：下单后自动激活 </li>
+                            </ul>
+                            <!-- 价格 -->
+                            <div class="renew-options">
+                                <div class="renew-option" onclick="selectOption(this, 'NLCS1', 110, 1)">
+                                    <div class="period">1个月</div>
+                                    <div class="price">¥110</div>
+                                </div>
+                                <div class="renew-option" onclick="selectOption(this, 'NLCS1', 390, 3)">
+                                    <div class="period">3个月</div>
+                                    <div class="price">¥390</div>
+                                </div>
+                                <div class="renew-option" onclick="selectOption(this, 'NLCS1', 660, 6)">
+                                    <div class="period">6个月</div>
+                                    <div class="price">¥660</div>
+                                </div>
+                                <div class="renew-option selected" onclick="selectOption(this, 'NLCS1', 1320, 12)">
+                                    <div class="period">12个月</div>
+                                    <div class="price">¥1320</div>
+                                </div>
+                            </div>
+                            
+                            <button class="renew-btn" onclick="addToCart('NeverLose(CS1版本)', 'NLCS1', 168, 12)">
+                                <i class="fas fa-cart-plus"></i> 加入续费清单
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="cart-section">
+                <h2 class="section-title"><i class="fas fa-shopping-cart"></i> 续费清单</h2>
+                
+                <div class="cart-items" id="cartItems">
+                    <div class="empty-cart">
+                        <i class="fas fa-shopping-cart"></i>
+                        <p>您的续费清单是空的</p>
+                        <p>请从左侧选择要续费的商品</p>
+                    </div>
+                </div>
+                
+                <div class="cart-summary">
+                    <div class="summary-row">
+                        <span>小计：</span>
+                        <span id="subtotal">¥0</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>折扣：</span>
+                        <span id="discount">-¥0</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>总计：</span>
+                        <span id="total">¥0</span>
+                    </div>
+                </div>
+                
+                <button class="checkout-btn" id="checkoutBtn" onclick="showPayment()" disabled>
+                    <i class="fas fa-lock"></i> 安全支付
+                </button>
+            </div>
+        </div>
+        
+        <div class="payment-section" id="paymentSection">
+            <h2 class="section-title"><i class="fas fa-credit-card"></i> 支付信息</h2>
+            
+            <div class="payment-methods">
+                <div class="payment-method selected" onclick="selectPayment(this)">
+                    <i class="fab fa-cc-visa"></i>
+                    <div>信用卡/借记卡</div>
+                </div>
+                <div class="payment-method" onclick="selectPayment(this)">
+                    <i class="fab fa-paypal"></i>
+                    <div>PayPal</div>
+                </div>
+                <div class="payment-method" onclick="selectPayment(this)">
+                    <i class="fas fa-mobile-alt"></i>
+                    <div>手机支付</div>
+                </div>
+            </div>
+            
+            <div class="cart-summary">
+                <div class="summary-row total">
+                    <span>订单总额：</span>
+                    <span id="orderTotal">¥0</span>
+                </div>
+            </div>
+            
+            <button class="checkout-btn" onclick="completePayment()">
+                <i class="fas fa-check-circle"></i> 确认支付
+            </button>
+        </div>
+        
+        <div class="success-message" id="successMessage">
+            <i class="fas fa-check-circle"></i>
+            <h2>续费成功！</h2>
+            <p>您的商品续费已完成，服务有效期已延长。感谢您选择我们的服务！您将收到一封包含续费详情的确认邮件。</p>
+            <button class="renew-btn" style="margin-top: 30px; max-width: 300px;" onclick="resetSystem()">
+                返回续费系统
+            </button>
+        </div>
+        
+        <div class="notification" id="notification">
+            <i class="fas fa-check-circle"></i> 商品已添加到续费清单
+        </div>
+    </div>
+
+    <script>
+        // 存储购物车数据
+        let cart = [];
+        let subtotal = 0;
+        let discount = 0;
+        let total = 0;
+        
+        // 存储当前选中的续费选项
+        const selectedOptions = {
+            cloud: { price: 138, months: 6 },
+            security: { price: 396, months: 12 },
+            NLCS2: { price: 168, months: 12 }
+        };
+        
+        // 选择续费选项
+        function selectOption(element, productId, price, months) {
+            // 移除同一卡片中其他选项的选中状态
+            const options = element.parentElement.children;
+            for (let option of options) {
+                option.classList.remove('selected');
+            }
+            
+            // 添加当前选项的选中状态
+            element.classList.add('selected');
+            
+            // 保存选中的选项
+            selectedOptions[productId] = { price, months };
+        }
+        
+        // 添加到购物车
+        function addToCart(name, productId, defaultPrice, defaultMonths) {
+            const { price, months } = selectedOptions[productId] || { 
+                price: defaultPrice, 
+                months: defaultMonths 
+            };
+            
+            // 检查是否已存在相同商品
+            const existingItemIndex = cart.findIndex(item => item.id === productId);
+            
+            if (existingItemIndex !== -1) {
+                // 更新现有商品
+                cart[existingItemIndex].price = price;
+                cart[existingItemIndex].months = months;
+            } else {
+                // 添加新商品
+                cart.push({
+                    id: productId,
+                    name: name,
+                    price: price,
+                    months: months
+                });
+            }
+            
+            updateCart();
+            showNotification(`${name}已添加到续费清单`);
+        }
+        
+        // 从购物车中移除商品
+        function removeFromCart(productId) {
+            cart = cart.filter(item => item.id !== productId);
+            updateCart();
+        }
+        
+        // 更新购物车
+        function updateCart() {
+            const cartItems = document.getElementById('cartItems');
+            const subtotalElement = document.getElementById('subtotal');
+            const discountElement = document.getElementById('discount');
+            const totalElement = document.getElementById('total');
+            const orderTotalElement = document.getElementById('orderTotal');
+            const checkoutBtn = document.getElementById('checkoutBtn');
+            
+            // 清空购物车显示
+            cartItems.innerHTML = '';
+            
+            // 如果没有商品
+            if (cart.length === 0) {
+                cartItems.innerHTML = `
+                    <div class="empty-cart">
+                        <i class="fas fa-shopping-cart"></i>
+                        <p>您的续费清单是空的</p>
+                        <p>请从左侧选择要续费的商品</p>
+                    </div>
+                `;
+                subtotal = 0;
+                discount = 0;
+                total = 0;
+                checkoutBtn.disabled = true;
+            } else {
+                // 计算小计
+                subtotal = cart.reduce((sum, item) => sum + item.price, 0);
+                
+                // 添加购物车项目
+                cart.forEach(item => {
+                    const itemElement = document.createElement('div');
+                    itemElement.className = 'cart-item';
+                    itemElement.innerHTML = `
+                        <div>
+                            <div><strong>${item.name}</strong></div>
+                            <div style="font-size: 0.9rem; color: #7f8c8d;">${item.months}个月</div>
+                        </div>
+                        <div><strong>¥${item.price}</strong></div>
+                        <button class="remove-item" onclick="removeFromCart('${item.id}')">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+                    cartItems.appendChild(itemElement);
+                });
+                
+                checkoutBtn.disabled = false;
+            }
+            
+            // 计算折扣和总计
+            discount = subtotal > 300 ? Math.round(subtotal * 0.1) : 0;
+            total = subtotal - discount;
+            
+            // 更新价格显示
+            subtotalElement.textContent = `¥${subtotal}`;
+            discountElement.textContent = `-¥${discount}`;
+            totalElement.textContent = `¥${total}`;
+            orderTotalElement.textContent = `¥${total}`;
+        }
+        
+        // 显示通知
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // 选择支付方式
+        function selectPayment(element) {
+            const paymentMethods = element.parentElement.children;
+            for (let method of paymentMethods) {
+                method.classList.remove('selected');
+            }
+            element.classList.add('selected');
+        }
+        
+        // 显示支付区域
+        function showPayment() {
+            if (cart.length === 0) return;
+            document.getElementById('paymentSection').style.display = 'block';
+            window.scrollTo({
+                top: document.body.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+        
+        // 完成支付
+        function completePayment() {
+            document.getElementById('paymentSection').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'block';
+            window.scrollTo({
+                top: document.body.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+        
+        // 重置系统
+        function resetSystem() {
+            cart = [];
+            updateCart();
+            document.getElementById('paymentSection').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        }
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCart();
+        });
+    </script>
+</body>
+</html>
